@@ -1,0 +1,81 @@
+<title>CSTEK</title>
+
+<body bgcolor="F1F1F1" >
+
+<table align="center">
+		<tr><td width="100%"><img src="head.png" width="670" height="90" alt="123" border="0" /></td></tr>
+</table>
+
+<!---CSS--->
+<style>
+  table {border-collapse: collapse;}
+  tr:hover{background:#FFCC99;}
+</style>
+
+<cfoutput>
+
+<!---登入資訊Bar--->
+<cfif  NOT IsDefined("SESSION.CNNAME")> <cfset #SESSION.CNNAME#="">	</cfif> 
+<cfif  NOT IsDefined("SESSION.ENNAME")> <cfset #SESSION.ENNAME#="">	</cfif> 
+
+<cfif #SESSION.CNNAME# neq "">
+	<div align="left" style="background-color:999999">
+	<small style="color:FFFFFF">登入人員：#SESSION.CNNAME# #SESSION.ENNAME# 
+	&nbsp;&nbsp; 
+	<a href="/CSTEK/Logout.cfm">[登出]</a></small></div>
+
+
+<!---查詢該部門人員有的權限大類別--->
+<cfquery name="BIMPD" datasource="CSTEK">
+	SELECT DISTINCT PD002
+	FROM BIMPG
+	JOIN BIMPE ON PE001=PG002
+	JOIN BIMPD ON PE003=PD001
+	WHERE PG001='#SESSION.DepCode#'
+	
+   UNION 
+   
+    SELECT DISTINCT PD002
+	FROM BIMPF
+	JOIN BIMPE ON PE001=PF002
+	JOIN BIMPD ON PE003=PD001
+	WHERE PF001='#SESSION.Code#'
+</cfquery>
+
+<cfmenu bgcolor="666666" fontcolor="FFF" selectedItemColor="FFCC00"  type="horizontal" fontsize="14">
+
+<cfloop query="BIMPD">
+
+  <!---查詢該類別有的細項檔案權限--->
+	<cfquery name="BIMPG" datasource="CSTEK">
+		SELECT *
+		FROM (
+		SELECT PE001,PE002,PE005
+		FROM BIMPG
+		JOIN BIMPE ON PE001=PG002
+		JOIN BIMPD ON PE003=PD001
+		WHERE PG001='#SESSION.DepCode#' AND PD002='#PD002#'
+		
+		UNION 
+			
+	   SELECT PE001,PE002,PE005
+		FROM BIMPF
+		JOIN BIMPE ON PE001=PF002
+		JOIN BIMPD ON PE003=PD001
+		WHERE PF001='#SESSION.Code#' AND PD002='#PD002#'
+		) AS A
+		ORDER BY PE001
+	</cfquery>
+    
+   <cfmenuitem display="#PD002#"> 
+      <cfloop query="BIMPG">
+        <cfmenuitem display="#PE002#" href="#PE005#"></cfmenuitem>
+		</cfloop>
+   </cfmenuitem>
+ </cfloop>
+     
+</cfmenu>
+</cfif>
+</cfoutput>
+
+</body>
